@@ -12,20 +12,34 @@ public class Vehicle {
   protected int brake;
   protected double gas;
   protected VSize vSize;
+  protected int nodeNum;
+  
+  public Vehicle() {
+    gps = new Gps();
+    vSize = new VSize();
+    this.brake = 1;
+    this.gas = 100.0;
+  }
   
   public Vehicle(String addr,
                  Gps initGps,
                  double initVel,
                  double initAcc,
-                 VSize initSize) {
+                 VSize initSize,
+                 int initNode) {
     this.address = addr;
     this.gps = initGps;
     this.velocity = initVel;
     this.acceleration = initAcc;
     this.vSize = initSize;
+    this.nodeNum = initNode;
     
     this.brake = 1;
     this.gas = 100.0;
+  }
+  
+  public void setAddr(String localAddr) {
+    this.address = localAddr;
   }
   
   /**
@@ -33,24 +47,45 @@ public class Vehicle {
    * 
    * @param newGps 
    */
-  protected void setGps(Gps newGps) {
+  public void setGps(Gps newGps) {
     this.gps.setLat(newGps.getLat());
     this.gps.setLon(newGps.getLon());
   }
   
-  protected void setVel(double newVel) {
-  
+  public void setVel(double newVel) {
+    this.velocity = newVel;
   }
   
-  protected void setAcc(double newAcc) {
-  
+  public void setAcc(double newAcc) {
+    this.acceleration = newAcc;
   }
   
-  protected void setBrake(int newBrake) {
-  
+  public void setBrake(int newBrake) {
+    this.brake = newBrake;
   }
   
-  protected void setGas(double newGas) {
+  public void setGas(double newGas) {
+    this.gas = newGas;
+  }
   
+  public void setSize(VSize newSize) {
+    this.vSize.setLen(newSize.getLen());
+    this.vSize.setWid(newSize.getWid());
+  }
+  
+  public void setNodeNum(int newNum) {
+    this.nodeNum = newNum;
+  }
+  
+  public int getNodeNum() {
+    return this.nodeNum;
+  }
+  
+  public String getAddr() {
+    return this.address;
+  }
+  
+  public Gps getGps() {
+    return this.gps;
   }
 }

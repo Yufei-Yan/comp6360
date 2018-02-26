@@ -1,13 +1,16 @@
 package edu.auburn.comp6360_vehicles;
 
+import edu.auburn.com6360_utility.VehicleParaHandler;
+import edu.auburn.com6360_utility.ConfigFileHandler;
+
 /**
  *
  * @author Yufei Yan (yzy0050@auburn.edu)
  */
 public class Test {
   public static void main(String[] args) {
-    if (2 != args.length) {
-      System.err.println("There must be 2 arguments.");
+    if (3 != args.length) {
+      System.err.println("There must be 3 arguments.");
       return;
     }
     
@@ -17,7 +20,11 @@ public class Test {
     }
     
     if (args[0].equals("lead")) {
-      System.out.println("Running lead vechicle");
+      System.out.println("Running " + args[0] + " vechicle");
+      LeadVehicle lead = (LeadVehicle)new VehicleParaHandler().vehicleGenrator(args[0]);
+      
+      lead.runLead(args[2]);
+      
     } else {
       System.out.println("Running following vechicle");
     }

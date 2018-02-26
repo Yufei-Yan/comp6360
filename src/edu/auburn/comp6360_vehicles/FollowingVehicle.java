@@ -6,12 +6,17 @@ package edu.auburn.comp6360_vehicles;
  */
 public class FollowingVehicle extends Vehicle {
 
+  public FollowingVehicle() {
+    super();
+  }
+  
   public FollowingVehicle(String addr,
           Gps initGps,
           double initVel,
           double initAcc,
-          VSize initSize) {
-    super(addr, initGps, initVel, initAcc, initSize);
+          VSize initSize,
+          int initNode) {
+    super(addr, initGps, initVel, initAcc, initSize, initNode);
   }
   
   /**

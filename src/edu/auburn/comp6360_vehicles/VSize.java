@@ -8,6 +8,16 @@ public class VSize {
   private double length;
   private double width;
   
+  public VSize() {
+    length = 10.0;
+    width = 5.0;
+  }
+  
+  public VSize(double len, double wid) {
+    this.length = len;
+    this.width = wid;
+  }
+  
   public double getLen() {
     return length;
   }
