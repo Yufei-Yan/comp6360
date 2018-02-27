@@ -63,4 +63,17 @@ public class LeadVehicle extends Vehicle {
       System.out.println("Old file removed...");
     }
   }
+  
+  
+  /**
+   * Obtain the acceleration for the Leading Vehicle (every 10 ms)
+   * 
+   * @param
+   * @return a random number between -1 and 1
+   */
+  public void setAcc() {
+	    this.acceleration = Math.random() * 2 - 1;
+	  }
+  
+  
 }

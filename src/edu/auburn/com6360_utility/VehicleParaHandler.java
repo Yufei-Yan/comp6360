@@ -128,16 +128,5 @@ public class VehicleParaHandler {
   private String getAddr() {
     return "localhost";
   }
-  
-  /**
-   * Obtain the acceleration for the Leading Vehicle (every 10 ms)
-   * 
-   * @param
-   * @return a random number between -1 and 1
-   */
-  public double randomAcceleration() {
-	  return Math.random() * 2 - 1;
-  }
-  
-  
+
 }
