@@ -88,4 +88,10 @@ public class Vehicle {
   public Gps getGps() {
     return this.gps;
   }
+  
+  public double computeDistance(Vehicle otherVehicle) {
+	  double distance = this.getGps().getLon() - otherVehicle.getGps().getLon();
+	  return Math.abs(distance);
+  }
+  
 }

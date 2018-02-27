@@ -6,6 +6,7 @@ import edu.auburn.comp6360_vehicles.LeadVehicle;
 import edu.auburn.comp6360_vehicles.Vehicle;
 import edu.auburn.comp6360_vehicles.VSize;
 
+import java.util.Random;
 
 /**
  * Handle all parameters needed by vehicles
@@ -66,23 +67,32 @@ public class VehicleParaHandler {
   
   /**
    * Calculate GPS coordinates based on velocity and acceleration
-   * 
-   * @param 
-   * @return 
+   * @param oldLoc: old location
+   * @param velocity: initial velocity
+   * @param acceleration
+   * @param time interval
+   * @return the new location
    */
-  public void gpsCal() {
-  
+  public Gps gpsCal(Gps oldLoc, double velocity, double acceleration, double timeInterval) {
+	  Gps newLoc = new Gps();
+	  newLoc.setLat(oldLoc.getLat());
+	  double distance = velocity * timeInterval + .5 * acceleration * timeInterval * timeInterval;
+	  newLoc.setLon(oldLoc.getLon() + distance);
+	  return newLoc;
   }
   
   /**
    * Calculate velocity based on initial velocity, acceleration and 
    * time interval
    * 
-   * @param 
-   * @return 
+   * @param initial velocity
+   * @param acceleration
+   * @param time interval
+   * @return new velocity after timeInterval
    */
-  public void velCal() {
-  
+  public double velCal(double velocity, double acceleration, double timeInterval) {
+	velocity += acceleration * timeInterval;
+	return velocity;
   }
   
   /**
@@ -118,4 +128,16 @@ public class VehicleParaHandler {
   private String getAddr() {
     return "localhost";
   }
+  
+  /**
+   * Obtain the acceleration for the Leading Vehicle (every 10 ms)
+   * 
+   * @param
+   * @return a random number between -1 and 1
+   */
+  public double randomAcceleration() {
+	  return Math.random() * 2 - 1;
+  }
+  
+  
 }
