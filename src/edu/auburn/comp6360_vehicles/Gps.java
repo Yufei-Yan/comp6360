@@ -1,6 +1,6 @@
 package edu.auburn.comp6360_vehicles;
 
-// I think a timestamp could be recorded in GPS info
+// I think a timestamp could be recorded in GPS info, and might be useful for compute the location later
 // You may delete them if you think they are unnecessary
 
 /**

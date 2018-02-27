@@ -57,7 +57,7 @@ public class LeadVehicle extends Vehicle {
       try {
         ret = configHandler.writeAll(this);
       } catch (IOException e) {
-        System.err.println("Fialed to write to config file.");
+        System.err.println("Failed to write to config file.");
         e.printStackTrace();
       }
       System.out.println("Old file removed...");
