@@ -36,4 +36,41 @@ public class FollowingVehicle extends Vehicle {
   public int leaveRequest() {
     return 0;
   }
+  
+  /**
+   * When receives a message from leading vehicle allowing it to form the road train, and is far away from the road train
+   * Tries to accelerate and catch up the road train to the appropriate location
+   * 
+   */
+  public void catchup() {
+	  this.setVel(33.3);
+	  this.setAcc(0);
+  }
+  
+  /** Evaluate the eligibility to join the road train while catching up
+   * @param targetVehicle: the vehicle that this one tries to be right behind
+   * @param targetDistance: the distance by which this one tries to be behind the target vehicle
+   * 
+   * @return whether it is the time to start into the follow mode
+   * 
+   */
+  public boolean canJoin(Vehicle targetVehicle, double targetDistance) {
+	  double distance = this.computeDistance(targetVehicle);
+	  if (distance <= targetDistance)
+		  return true;
+	  return false;
+  }
+  
+  
+  /**
+   * While in the road train, controlled by the leading vehicle, follow the velocity and acceleration according to the leading vehicle
+   * 
+   * @param leadVel: the velocity information of the leading vehicle received from the packet
+   * @param leadAcc: the acceleration information of the leading vehicle received from the packet
+   */
+  public void follow(double leadVel, double leadAcc) {
+	  this.setVel(leadVel);
+	  this.setAcc(leadAcc);
+  }
+  
 }

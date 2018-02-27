@@ -89,9 +89,17 @@ public class Vehicle {
     return this.gps;
   }
   
+  public double getLength() {
+	  return this.vSize.getLen();
+  }
+  
   public double computeDistance(Vehicle otherVehicle) {
-	  double distance = this.getGps().getLon() - otherVehicle.getGps().getLon();
-	  return Math.abs(distance);
+	  double thisX = this.getGps().getLon();
+	  double otherX = otherVehicle.getGps().getLon();
+	  if (thisX < otherX)
+		  return otherX - otherVehicle.getLength() - thisX;
+	  else
+		  return thisX - this.getLength() - otherX;
   }
   
 }

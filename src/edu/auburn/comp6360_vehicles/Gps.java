@@ -1,5 +1,8 @@
 package edu.auburn.comp6360_vehicles;
 
+// I think a timestamp could be recorded in GPS info
+// You may delete them if you think they are unnecessary
+
 /**
  *
  * @author Yufei Yan (yzy0050@auburn.edu)
@@ -7,6 +10,7 @@ package edu.auburn.comp6360_vehicles;
 public class Gps {
   private double lattitude;
   private double longitude;
+  private long timestamp;
   
   public double getLat() {
     return lattitude;
@@ -23,4 +27,13 @@ public class Gps {
   public void setLon(double lon) {
     this.longitude = lon;
   }
+  
+  public void setTimestamp(long time) {
+	  this.timestamp = time;
+  }
+  
+  public long getTimestamp() {
+	  return timestamp;
+  }
+  
 }
