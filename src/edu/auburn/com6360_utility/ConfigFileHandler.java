@@ -46,7 +46,7 @@ public class ConfigFileHandler {
   /**
    * Method to create a new config file
    * 
-   * @param filename
+   * @param 
    * @return 
    */
   public boolean createConfigFile() {
@@ -99,6 +99,7 @@ public class ConfigFileHandler {
       writer.write(all);
       writer.newLine();
       writer.close();
+      ret = true;
     }
     
     return ret;
