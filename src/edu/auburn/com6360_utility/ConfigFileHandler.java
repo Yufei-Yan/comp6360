@@ -11,6 +11,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Handle all functionalities for the configuration file
@@ -81,15 +83,16 @@ public class ConfigFileHandler {
   
   public boolean writeAll(Vehicle veh) throws IOException {
     boolean ret = false;
+    int lineNum = 0;
     
-    ret = this.isNodeExist(veh.getNodeNum());
-    if (ret) {
+    lineNum = this.isNodeExist(veh.getNodeNum());
+    if (0 != lineNum) {
       System.out.println("Node already exists.");
       ret = false;
       return ret;
     } else {
       String all = veh.getNodeNum() + " "
-                 + veh.getAddr() + " "
+                 + new NetworkHandler().rawIpToString(veh.getAddr()) + " "
                  + "port" + " "
                  + veh.getGps().getLat() + " "
                  + veh.getGps().getLon() + " ";
@@ -105,13 +108,31 @@ public class ConfigFileHandler {
     return ret;
   }
   
+  public boolean updateAll(Vehicle veh) throws Exception {
+    boolean ret = false;
+    int lineNum = 0;
+    
+    lineNum = this.isNodeExist(veh.getNodeNum());
+    if ( 0 != lineNum) {
+      System.out.println("Node found.");
+      Path path = Paths.get(filename);
+      List<String> lines = null;
+      lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+      
+    } else {
+      this.writeAll(veh);
+    }
+    
+    return ret;
+  }
+  
   /**
    * Method to write node number to config file.
    * 
    * @param nodeNum
    * @return 
    */
-  public boolean writeNode(int nodeNum) {
+  public boolean updateNode(int nodeNum) {
     boolean ret = false;
     
 //    ret = this.isNodeExist(nodeNum);
@@ -126,32 +147,14 @@ public class ConfigFileHandler {
     return ret;
   }
   
-  public boolean writeAddr(String addr, int nodeNum) {
+  public boolean updateStatus(String linkName, int nodeNum) {
     boolean ret = false;
     
     return ret;
   }
   
-  public boolean writePort(String port, int nodeNum) {
-    boolean ret = false;
-    
-    return ret;
-  }
-  
-  public boolean writeGps(Gps gps, int nodeNum) {
-    boolean ret = false;
-    
-    return ret;
-  }
-  
-  public boolean writeStatus(String linkName, int nodeNum) {
-    boolean ret = false;
-    
-    return ret;
-  }
-  
-  public boolean isNodeExist(int nodeNum) {
-    boolean ret = false;
+  public int isNodeExist(int nodeNum) {
+    int lineNum = 0;
     
     Path path = Paths.get(filename);
     List<String> lines = null;
@@ -163,12 +166,65 @@ public class ConfigFileHandler {
       System.exit(0);
     }
     String[] tokens;
+    int count = 0;
     for (String line : lines) {
+      ++count;
       tokens = line.split(" ");
       if (tokens[0].equals(Integer.toString(nodeNum))) {
-        ret = true;
-        return ret;
+        lineNum = count;
       }
+    }
+    return lineNum;
+  }
+  
+  public int getBiggestNode() {
+    
+    Path path = Paths.get(filename);
+    List<String> lines = null;
+    
+    try {
+      lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+    } catch (IOException ex) {
+      System.err.println("Exception caught.\n Program exits");
+      ex.printStackTrace();
+      System.exit(0);
+    }
+    
+    String line = lines.get(lines.size() - 1);
+    String[] tokens;
+    tokens = line.split(" ");
+    
+    return new Integer(tokens[0]);
+  }
+  
+  public boolean updateLine(int lineNum, Vehicle veh) {
+    boolean ret = false;
+    
+    Path path = Paths.get(filename);
+    List<String> lines = null;
+    
+    try {
+      lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+      ret = true;
+    } catch (IOException ex) {
+      System.err.println("Exception caught.\n Program exits");
+      ex.printStackTrace();
+      System.exit(0);
+    }
+    
+    String all = veh.getNodeNum() + " "
+                 + new NetworkHandler().rawIpToString(veh.getAddr()) + " "
+                 + "port" + " "
+                 + veh.getGps().getLat() + " "
+                 + veh.getGps().getLon() + " "; 
+    
+    lines.set(lineNum - 1, all);
+    
+    try {
+      Files.write(path, lines);
+      ret = true;
+    } catch (IOException ex) {
+      System.err.println(ex);
     }
     
     return ret;

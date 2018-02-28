@@ -1,10 +1,12 @@
 package edu.auburn.comp6360_vehicles;
 
+import java.io.Serializable;
+
 /**
  *
  * @author Yufei Yan (yzy0050@auburn.edu)
  */
-public class VSize {
+public class VSize implements Serializable {
   private double length;
   private double width;
   

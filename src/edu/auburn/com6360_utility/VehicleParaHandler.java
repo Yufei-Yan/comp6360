@@ -5,8 +5,13 @@ import edu.auburn.comp6360_vehicles.Gps;
 import edu.auburn.comp6360_vehicles.LeadVehicle;
 import edu.auburn.comp6360_vehicles.Vehicle;
 import edu.auburn.comp6360_vehicles.VSize;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import sun.security.x509.X500Name;
 
 /**
  * Handle all parameters needed by vehicles
@@ -21,16 +26,19 @@ public class VehicleParaHandler {
    * @param pos indicates if it is lead or following vehicle.
    * @return a Vehicle object
    */
-  public Vehicle vehicleGenrator(String pos) {
+  public Vehicle vehicleGenrator(String pos, String filename) {
     VehicleParaHandler u = new VehicleParaHandler();
     Vehicle veh;
     VSize vSize;
     if (pos.equals("lead")) {
       veh = new LeadVehicle();
       vSize = new VSize();
+      veh.setNodeNum(1);
     } else {
       veh = new FollowingVehicle();
       vSize = new VSize(5.0, 5.0);
+      veh.setNodeNum(new ConfigFileHandler(filename).getBiggestNode() + 1);
+      System.out.println("node number:" + veh.getNodeNum());
     }
     
     veh.setAddr(u.getAddr());
@@ -38,8 +46,7 @@ public class VehicleParaHandler {
     veh.setVel(30);
     veh.setAcc(0);
     veh.setSize(vSize);
-    veh.setNodeNum(new NetworkHandler().assignNodeNum());
-    new NetworkHandler().updateNodeArr(veh.getNodeNum());
+    veh.setFilename(filename);
     
     return veh;
   }
@@ -58,7 +65,8 @@ public class VehicleParaHandler {
       newGps.setLat(0);
       newGps.setLon(0);
     } else {
-
+      newGps.setLat(5);
+      newGps.setLon(-20);
     }
     
     System.out.println(newGps.getLat());
@@ -70,12 +78,9 @@ public class VehicleParaHandler {
    * @param oldLoc: old location
    * @param velocity: initial velocity
    * @param acceleration
-   * 
-   * @param vehicle: the vehicle upon which needs to calculate information, contains the old GPS and updated velocity and acceleration
    * @param time interval
    * @return the new location
    */
-//  public Gps gpsCal(Vehicle vehicle, double timeInterval) {
   public Gps gpsCal(Gps oldLoc, double velocity, double acceleration, double timeInterval) {
 	  Gps newLoc = new Gps();
 	  newLoc.setLat(oldLoc.getLat());
@@ -128,8 +133,16 @@ public class VehicleParaHandler {
   
   }
   
-  private String getAddr() {
-    return "localhost";
+  private byte[] getAddr() {
+    InetAddress ipAddr = null;
+    try {
+      ipAddr = InetAddress.getLocalHost();
+    } catch (UnknownHostException ex) {
+      System.out.println("Cannot get localhost IP address.");
+      ex.printStackTrace();
+      //return "127.0.0.1";
+    }
+    return ipAddr.getAddress();
   }
 
 }

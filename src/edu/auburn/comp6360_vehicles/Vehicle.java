@@ -1,14 +1,19 @@
 package edu.auburn.comp6360_vehicles;
 
+import edu.auburn.com6360_utility.ConfigFileHandler;
+import edu.auburn.com6360_utility.VehicleParaHandler;
+import java.io.Serializable;
+
 /**
  *
  * @author Yufei Yan (yzy0050@auburn.edu)
  */
-public class Vehicle {
-	
-  public final double MAX_VELOCITY = 35;
-	
-  protected String address;
+public class Vehicle implements Runnable, Serializable {
+  
+  public final int timeout = 1000;
+  public final int timeInterval = 750;
+  
+  protected byte[] address;
   protected Gps gps;
   protected double velocity;
   protected double acceleration;
@@ -16,6 +21,7 @@ public class Vehicle {
   protected double gas;
   protected VSize vSize;
   protected int nodeNum;
+  protected String filename;
   
   public Vehicle() {
     gps = new Gps();
@@ -24,7 +30,7 @@ public class Vehicle {
     this.gas = 100.0;
   }
   
-  public Vehicle(String addr,
+  public Vehicle(byte[] addr,
                  Gps initGps,
                  double initVel,
                  double initAcc,
@@ -41,7 +47,7 @@ public class Vehicle {
     this.gas = 100.0;
   }
   
-  public void setAddr(String localAddr) {
+  public void setAddr(byte[] localAddr) {
     this.address = localAddr;
   }
   
@@ -80,11 +86,15 @@ public class Vehicle {
     this.nodeNum = newNum;
   }
   
+  public void setFilename(String newFile) {
+    this.filename = newFile;
+  }
+  
   public int getNodeNum() {
     return this.nodeNum;
   }
   
-  public String getAddr() {
+  public byte[] getAddr() {
     return this.address;
   }
   
@@ -96,6 +106,18 @@ public class Vehicle {
 	  return this.vSize.getLen();
   }
   
+  public String getFilename() {
+    return this.filename;
+  }
+
+  public double getVel() {
+    return this.velocity;
+  }
+  
+  public double getAcc() {
+    return this.acceleration;
+  }
+  
   public double computeDistance(Vehicle otherVehicle) {
 	  double thisX = this.getGps().getLon();
 	  double otherX = otherVehicle.getGps().getLon();
@@ -105,4 +127,32 @@ public class Vehicle {
 		  return thisX - this.getLength() - otherX;
   }
   
+  @Override
+  public void run() {
+  
+  }
+  
+  public void start() {
+  
+  }
+  
+  protected void socketServer() throws Exception {
+  
+  }
+  
+  protected void socketClient() throws Exception {
+  
+  }
+  
+  protected void updateTimeout() {
+    System.out.println("update timeout.");
+    VehicleParaHandler newGps = new VehicleParaHandler();
+    this.setGps(newGps.gpsCal(this.getGps(),
+            this.getVel(), this.getAcc(), timeout / 1000.0));
+    
+    ConfigFileHandler update = new ConfigFileHandler(filename);
+    int lineNum = update.isNodeExist(this.getNodeNum());
+    System.out.println("lineNum: " + lineNum);
+    update.updateLine(lineNum, this);
+  }
 }

@@ -1,13 +1,16 @@
 package edu.auburn.comp6360_vehicles;
 
 // I think a timestamp could be recorded in GPS info, and might be useful for compute the location later
+
+import java.io.Serializable;
+
 // You may delete them if you think they are unnecessary
 
 /**
  *
  * @author Yufei Yan (yzy0050@auburn.edu)
  */
-public class Gps {
+public class Gps implements Serializable {
   private double lattitude;
   private double longitude;
   private long timestamp;
