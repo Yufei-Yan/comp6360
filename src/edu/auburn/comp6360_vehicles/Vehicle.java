@@ -5,6 +5,9 @@ package edu.auburn.comp6360_vehicles;
  * @author Yufei Yan (yzy0050@auburn.edu)
  */
 public class Vehicle {
+	
+  public final double MAX_VELOCITY = 35;
+	
   protected String address;
   protected Gps gps;
   protected double velocity;
