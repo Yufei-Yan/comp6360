@@ -4,10 +4,12 @@ import edu.auburn.com6360_utility.ConfigFileHandler;
 import edu.auburn.com6360_utility.NetworkHandler;
 import static edu.auburn.com6360_utility.NetworkHandler.NORMAL;
 import edu.auburn.com6360_utility.PacketHeader;
+import edu.auburn.com6360_utility.VehicleParaHandler;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -122,37 +124,72 @@ public class FollowingVehicle extends Vehicle {
   protected void socketClient() throws Exception {
     System.out.println("in socket client");
     int clientSn = new Random().nextInt(100);
+    VehicleParaHandler vehPara = new VehicleParaHandler();
     int serverSn = 0;
+    boolean isLoss = false;
 
     while (true) {
       DatagramSocket client = new DatagramSocket();
-
+      client.setSoTimeout(timeout);
+      
       InetAddress IPAddress = InetAddress.getByName("localhost");
       byte[] dataRx = new byte[1024];
       byte[] dataTx = new byte[1024];
       
+      try {
       PacketHeader clientHeader = new PacketHeader(clientSn, this.getAddr(), NetworkHandler.NORMAL);
       dataTx = new NetworkHandler().packetAssembler(clientHeader, this);
 
       DatagramPacket sendPacket = new DatagramPacket(dataTx, dataTx.length, IPAddress, 10121);
       client.send(sendPacket);
+      } catch (SocketTimeoutException e) {
+        System.out.println("Update timeout.");
+        this.update(timeout);
+        ++clientSn;
+        continue;
+      } catch (Exception e) {
+        System.err.println(e);
+      }
       //System.out.println(sendPacket.getData());
-
+      
+      LeadVehicle lv = null;
+      try {
       DatagramPacket receivePacket = new DatagramPacket(dataRx, dataRx.length);
       client.receive(receivePacket);
       
       dataRx = receivePacket.getData();
       
       PacketHeader serverHeader = new NetworkHandler().headerDessembler(dataRx);
-      LeadVehicle lv = (LeadVehicle)new NetworkHandler().payloadDessembler(dataRx);
+      lv = (LeadVehicle)new NetworkHandler().payloadDessembler(dataRx);
       
       serverSn = serverHeader.getSn();
+      
+      double toss = vehPara.packetLossCal(lv.getGps(), this.getGps()) * Math.random();
+      if (toss < 0.5) {
+        System.out.println("No packet Received.");
+        isLoss = true;
+      }
+      
+      } catch (SocketTimeoutException e) {
+        client.close();
+        continue;
+      } catch (Exception e) {
+        System.err.println(e);
+      }
 
       //System.out.println("Client: " + new String(receivePacket.getData()));
       client.close();
       ++clientSn;
+      int latency = vehPara.latencyCal(lv.getGps(), this.getGps());
+      System.out.println("client latency: " + latency);
+      Thread.sleep(0, latency);
+      this.update(timeInterval);
       System.out.println("client SN:" + clientSn);
-      System.out.println("server SN:" + serverSn);
+      
+      if (!isLoss) {
+        System.out.println("server SN:" + serverSn);
+      }
+      
       System.out.println();
       Thread.sleep(timeInterval);
     }

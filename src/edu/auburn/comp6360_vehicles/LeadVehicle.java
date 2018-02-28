@@ -116,13 +116,11 @@ public class LeadVehicle extends Vehicle {
     byte[] dataRx = new byte[1024];
     byte[] dataTx = new byte[1024];
     
-    
     DatagramPacket sendPacket = null;
     InetAddress IPAddress = null;
     int port = 0;
     while(true) {
       DatagramPacket receivePacket = new DatagramPacket(dataRx, dataRx.length);
-      System.out.println("No following vehicles detected.\nBeacon broadcasting");
       
       server.setSoTimeout(timeout);
       
@@ -142,8 +140,10 @@ public class LeadVehicle extends Vehicle {
 //        System.out.println("fv.length " + fv.getLength());
         
       } catch (SocketTimeoutException e) {
-        System.out.println("timeout.");
-        this.updateTimeout();
+        System.out.println("Update timeout.");
+        this.update(timeout);
+        System.out.println("No following vehicles detected.\nBeacon broadcasting");
+        ++serverSn;
         continue;
       } catch (Exception e) {
         System.err.println(e);
@@ -161,6 +161,7 @@ public class LeadVehicle extends Vehicle {
       
       server.send(sendPacket);
       ++serverSn;
+      this.update(timeInterval);
       System.out.println("client SN:" + clientSn);
       System.out.println("server SN:" + serverSn);
       System.out.println();

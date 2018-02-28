@@ -218,7 +218,11 @@ public class ConfigFileHandler {
                  + veh.getGps().getLat() + " "
                  + veh.getGps().getLon() + " "; 
     
-    lines.set(lineNum - 1, all);
+    if (lineNum != 0) {
+      lines.set(lineNum - 1, all);
+    } else {
+      return false;
+    }
     
     try {
       Files.write(path, lines);

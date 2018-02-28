@@ -103,6 +103,7 @@ public class VehicleParaHandler {
 	return velocity;
   }
   
+  
   /**
    * Calculate throughput
    * 
@@ -116,21 +117,38 @@ public class VehicleParaHandler {
   /**
    * Calculate packet loss rate
    * 
-   * @param 
-   * @return 
+   * @param lead GPS on lead vehicle
+   * @param follow GPS on following vehicle
+   * @return the packet loss possibility
    */
-  public void packetLossCal() {
-  
+  public double packetLossCal(Gps lead, Gps follow) {
+    double rate = 0;
+    
+    double jitter = 0.95 + Math.random() * 1;
+    double distance = lead.getLon()- follow.getLon();
+    
+    rate = jitter * 
+            (99.10714 -(0.00982 * distance * distance) - 0.00893 * distance);
+
+    return rate;
   }
   
   /**
    * Calculate end-to-end latency
    * 
-   * @param 
-   * @return 
+   * @param lead GPS on lead vehicle
+   * @param follow GPS on following vehicle
+   * @return latency in nano second.
    */
-  public void latencyCal() {
-  
+  public int latencyCal(Gps lead, Gps follow) {
+    int latency = 0;
+    //assume processing time and transmission delay is 10000 nano seconds.
+    int pt = 10000;
+    
+    double distance = lead.getLon()- follow.getLon();
+    latency = (int) (pt + (distance / 300000000) * Math.pow(10, 9));
+    
+    return latency;
   }
   
   private byte[] getAddr() {

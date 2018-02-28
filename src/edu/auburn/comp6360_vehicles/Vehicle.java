@@ -144,15 +144,18 @@ public class Vehicle implements Runnable, Serializable {
   
   }
   
-  protected void updateTimeout() {
-    System.out.println("update timeout.");
+  protected void update(int timeInterval) {
+    boolean ret = false;
     VehicleParaHandler newGps = new VehicleParaHandler();
     this.setGps(newGps.gpsCal(this.getGps(),
-            this.getVel(), this.getAcc(), timeout / 1000.0));
+            this.getVel(), this.getAcc(), timeInterval / 1000.0));
     
     ConfigFileHandler update = new ConfigFileHandler(filename);
     int lineNum = update.isNodeExist(this.getNodeNum());
     System.out.println("lineNum: " + lineNum);
-    update.updateLine(lineNum, this);
+    ret = update.updateLine(lineNum, this);
+    if (!ret) {
+      System.out.println("Fail to update config file.");
+    }
   }
 }
