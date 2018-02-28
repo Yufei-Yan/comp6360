@@ -70,9 +70,12 @@ public class VehicleParaHandler {
    * @param oldLoc: old location
    * @param velocity: initial velocity
    * @param acceleration
+   * 
+   * @param vehicle: the vehicle upon which needs to calculate information, contains the old GPS and updated velocity and acceleration
    * @param time interval
    * @return the new location
    */
+//  public Gps gpsCal(Vehicle vehicle, double timeInterval) {
   public Gps gpsCal(Gps oldLoc, double velocity, double acceleration, double timeInterval) {
 	  Gps newLoc = new Gps();
 	  newLoc.setLat(oldLoc.getLat());

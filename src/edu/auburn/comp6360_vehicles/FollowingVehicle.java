@@ -43,7 +43,7 @@ public class FollowingVehicle extends Vehicle {
    * 
    */
   public void catchup() {
-	  this.setVel(33.3);
+	  this.setVel(this.MAX_VELOCITY);
 	  this.setAcc(0);
   }
   
@@ -69,7 +69,6 @@ public class FollowingVehicle extends Vehicle {
    * @param leadAcc: the acceleration information of the leading vehicle received from the packet
    */
   public void follow(double leadVel, double leadAcc) {
-	  this.setVel(leadVel);
 	  this.setAcc(leadAcc);
   }
   
