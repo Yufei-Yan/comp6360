@@ -13,14 +13,7 @@ import java.lang.instrument.Instrumentation;
  */
 public class NetworkHandler {
   
-  public static final int NORMAL = 0;
-  public static final int FORM = 1;
-  public static final int LEAVE = 2;
-  public static final int ACCEPT = 3;
-  public static final int ACK = 4;
-  public static final int DECLINE = 5;
-  
-  public static int packetState = NORMAL;
+  public static int packetState = PacketHeader.NORMAL;
   
   private int headerLength = 117;
   

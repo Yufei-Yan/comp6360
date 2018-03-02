@@ -8,11 +8,6 @@ import edu.auburn.comp6360_vehicles.VSize;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import sun.security.x509.X500Name;
-
 /**
  * Handle all parameters needed by vehicles
  * 
@@ -26,7 +21,7 @@ public class VehicleParaHandler {
    * @param pos indicates if it is lead or following vehicle.
    * @return a Vehicle object
    */
-  public Vehicle vehicleGenrator(String pos, String filename) {
+  public Vehicle vehicleGenrator(String pos, String filename, String serverAddr) {
     VehicleParaHandler u = new VehicleParaHandler();
     Vehicle veh;
     VSize vSize;
@@ -47,6 +42,7 @@ public class VehicleParaHandler {
     veh.setAcc(0);
     veh.setSize(vSize);
     veh.setFilename(filename);
+    veh.setServerAddr(serverAddr);
     
     return veh;
   }

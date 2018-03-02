@@ -9,8 +9,8 @@ import edu.auburn.com6360_utility.RoadTrainHandler;
  */
 public class Test {
   public static void main(String[] args) throws Exception {
-    if (3 != args.length) {
-      System.err.println("There must be 3 arguments.");
+    if (4 != args.length) {
+      System.err.println("There must be 4 arguments.");
       return;
     }
     
@@ -22,7 +22,7 @@ public class Test {
     if (args[0].equals("lead")) {
       System.out.println("Running " + args[0] + " vechicle");
       
-      LeadVehicle lead = (LeadVehicle)new VehicleParaHandler().vehicleGenrator(args[0], args[2]);
+      LeadVehicle lead = (LeadVehicle)new VehicleParaHandler().vehicleGenrator(args[0], args[2], args[3]);
       lead.start();
       
 //      while (true) {
@@ -32,7 +32,7 @@ public class Test {
       
     } else {
       System.out.println("Running following vechicle");
-      FollowingVehicle follow = (FollowingVehicle)new VehicleParaHandler().vehicleGenrator(args[0], args[2]);
+      FollowingVehicle follow = (FollowingVehicle)new VehicleParaHandler().vehicleGenrator(args[0], args[2], args[3]);
       follow.start();
       
       RoadTrainHandler rt = new RoadTrainHandler(follow, args[2]);

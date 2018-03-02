@@ -3,6 +3,7 @@ package edu.auburn.comp6360_vehicles;
 import edu.auburn.com6360_utility.ConfigFileHandler;
 import edu.auburn.com6360_utility.NetworkHandler;
 import edu.auburn.com6360_utility.PacketHeader;
+import edu.auburn.com6360_utility.RoadTrainHandler;
 import edu.auburn.com6360_utility.VehicleParaHandler;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -28,8 +29,9 @@ public class FollowingVehicle extends Vehicle {
           double initVel,
           double initAcc,
           VSize initSize,
-          int initNode) {
-    super(addr, initGps, initVel, initAcc, initSize, initNode);
+          int initNode,
+          String initServerAddr) {
+    super(addr, initGps, initVel, initAcc, initSize, initNode, initServerAddr);
   }
   
   /**
@@ -131,16 +133,26 @@ public class FollowingVehicle extends Vehicle {
       DatagramSocket client = new DatagramSocket();
       client.setSoTimeout(timeout);
       
-      InetAddress IPAddress = InetAddress.getByName("localhost");
+      InetAddress IPAddress = InetAddress.getByName(this.serverAddr);
       byte[] dataRx = new byte[1024];
       byte[] dataTx = new byte[1024];
       
       try {
-      PacketHeader clientHeader = new PacketHeader(clientSn, this.getAddr(), NetworkHandler.NORMAL);
-      dataTx = new NetworkHandler().packetAssembler(clientHeader, this);
+        PacketHeader clientHeader = new PacketHeader(clientSn, this.getAddr(), PacketHeader.NORMAL);
+        System.out.println("fv packet state:" + NetworkHandler.packetState);
+        if (PacketHeader.FORM == NetworkHandler.packetState) {
+          clientHeader = new PacketHeader(clientSn, this.getAddr(), PacketHeader.FORM);
+          NetworkHandler.packetState = PacketHeader.NORMAL;
+        } else if (PacketHeader.LEAVE == NetworkHandler.packetState) {
+          clientHeader = new PacketHeader(clientSn, this.getAddr(), PacketHeader.LEAVE);
+          NetworkHandler.packetState = PacketHeader.NORMAL;
+        }
+        
+        System.out.println("fv client packet type: " + clientHeader.getType());
+        dataTx = new NetworkHandler().packetAssembler(clientHeader, this);
 
-      DatagramPacket sendPacket = new DatagramPacket(dataTx, dataTx.length, IPAddress, 10121);
-      client.send(sendPacket);
+        DatagramPacket sendPacket = new DatagramPacket(dataTx, dataTx.length, IPAddress, 10121);
+        client.send(sendPacket);
       } catch (SocketTimeoutException e) {
         System.out.println("Update timeout.");
         this.update(timeout);
@@ -150,21 +162,39 @@ public class FollowingVehicle extends Vehicle {
         System.err.println(e);
       }
       //System.out.println(sendPacket.getData());
-      
+
       LeadVehicle lv = null;
       try {
-      DatagramPacket receivePacket = new DatagramPacket(dataRx, dataRx.length);
-      client.receive(receivePacket);
-      //System.out.println("receivePacket size:" + receivePacket.getData().length);
-      
-      dataRx = receivePacket.getData();
-      
-      PacketHeader serverHeader = new NetworkHandler().headerDessembler(dataRx);
-      lv = (LeadVehicle)new NetworkHandler().payloadDessembler(dataRx);
-      
-      serverSn = serverHeader.getSn();
-      
-      isLoss = vehPara.isPacketLoss(lv.getGps(), this.getGps());
+        DatagramPacket receivePacket = new DatagramPacket(dataRx, dataRx.length);
+        client.receive(receivePacket);
+        //System.out.println("receivePacket size:" + receivePacket.getData().length);
+
+        dataRx = receivePacket.getData();
+
+        PacketHeader serverHeader = new NetworkHandler().headerDessembler(dataRx);
+        lv = (LeadVehicle) new NetworkHandler().payloadDessembler(dataRx);
+
+        serverSn = serverHeader.getSn();
+        System.out.println("fv server packet type: " + serverHeader.getType());
+        if (PacketHeader.ACCEPT == serverHeader.getType()) {
+          if (RoadTrainHandler.roadTrainState == RoadTrainHandler.FORM) {
+            System.out.println("Disable link.");
+            System.out.println("Lead vehicle accepts LEAVE request.");
+            this.setLink(0);
+          } else {
+            System.out.println("Set up link.");
+            System.out.println("Lead vehicle accepts JOIN request.");
+            this.setLink(lv.getNodeNum());
+          }
+          System.out.println("Lead vehicle accepts JOIN/LEAVE request.");
+          PacketHeader clientHeader = new PacketHeader(clientSn, this.getAddr(), PacketHeader.ACK);
+          dataTx = new NetworkHandler().packetAssembler(clientHeader, this);
+          DatagramPacket sendPacket = new DatagramPacket(dataTx, dataTx.length, IPAddress, 10121);
+          client.send(sendPacket);
+          System.out.println("Acknowledgement sent.");
+        }
+
+        isLoss = vehPara.isPacketLoss(lv.getGps(), this.getGps());
 
       } catch (SocketTimeoutException e) {
         client.close();
@@ -179,6 +209,7 @@ public class FollowingVehicle extends Vehicle {
       int latency = vehPara.latencyCal(lv.getGps(), this.getGps());
       System.out.println("client latency: " + latency);
       Thread.sleep(0, latency);
+      
       this.update(timeInterval);
       System.out.println("client SN:" + clientSn);
       

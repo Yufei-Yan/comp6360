@@ -82,6 +82,7 @@ public class ConfigFileHandler {
   }
   
   public boolean writeAll(Vehicle veh) throws IOException {
+    System.out.println("in writeAll");
     boolean ret = false;
     int lineNum = 0;
     
@@ -93,9 +94,10 @@ public class ConfigFileHandler {
     } else {
       String all = veh.getNodeNum() + " "
                  + new NetworkHandler().rawIpToString(veh.getAddr()) + " "
-                 + "port" + " "
+                 + "10121" + " "
                  + veh.getGps().getLat() + " "
-                 + veh.getGps().getLon() + " ";
+                 + veh.getGps().getLon() + " "
+                 + veh.getLink();
       FileWriter fstream = new FileWriter(filename, true);
       BufferedWriter writer = new BufferedWriter(fstream);
       
@@ -109,21 +111,15 @@ public class ConfigFileHandler {
   }
   
   public boolean updateAll(Vehicle veh) throws Exception {
+    System.out.println("in updateAll");
     boolean ret = false;
     int lineNum = 0;
     
     lineNum = this.isNodeExist(veh.getNodeNum());
-    if ( 0 != lineNum) {
-      System.out.println("Node found.");
-      Path path = Paths.get(filename);
-      List<String> lines = null;
-      lines = Files.readAllLines(path, StandardCharsets.UTF_8);
-      
-    } else {
-      this.writeAll(veh);
+    if (0 == lineNum) {
+      return ret;
     }
-    
-    return ret;
+    return this.writeAll(veh);
   }
   
   /**
@@ -199,6 +195,7 @@ public class ConfigFileHandler {
   }
   
   public boolean updateLine(int lineNum, Vehicle veh) {
+    System.out.println("in updateLine");
     boolean ret = false;
     
     Path path = Paths.get(filename);
@@ -215,18 +212,15 @@ public class ConfigFileHandler {
     
     String all = veh.getNodeNum() + " "
                  + new NetworkHandler().rawIpToString(veh.getAddr()) + " "
-                 + "port" + " "
+                 + "10121" + " "
                  + veh.getGps().getLat() + " "
-                 + veh.getGps().getLon() + " "; 
-    
-    try {
-      if (lineNum != 0) {
-        lines.set(lineNum - 1, all);
-      } else {
-        return false;
-      }
-    } catch (Exception e) {
-      System.out.println("Exception caught, config file not updated.");
+                 + veh.getGps().getLon() + " "
+                 + veh.getLink(); 
+
+    if (lineNum != 0 && !lines.isEmpty()) {
+      lines.set(lineNum - 1, all);
+    } else {
+      return false;
     }
     
     try {
@@ -234,12 +228,18 @@ public class ConfigFileHandler {
       ret = true;
     } catch (IOException ex) {
       System.err.println(ex);
+      ex.printStackTrace();
     }
     
     return ret;
   }
   
   public Gps getGps(int nodeNum) {
+    System.out.println("getGps: " + nodeNum);
+    if (0 == nodeNum) {
+      return null;
+    }
+    
     Gps vGps = new Gps();
     
     Path path = Paths.get(filename);
@@ -255,13 +255,17 @@ public class ConfigFileHandler {
     
     int lineNum = this.isNodeExist(nodeNum);
     
-    String line = lines.get(lineNum - 1);
-    String[] tokens;
-    tokens = line.split(" ");
+    String line;
+    if (0 != lineNum && 0 != lines.size()) {
+      line = lines.get(lineNum - 1);
+      String[] tokens;
+      tokens = line.split(" ");
+
+      vGps.setLat(Double.parseDouble(tokens[3]));
+      vGps.setLon(Double.parseDouble(tokens[4]));
+      return vGps;
+    }
     
-    vGps.setLat(Double.parseDouble(tokens[3]));
-    vGps.setLon(Double.parseDouble(tokens[4]));
-    
-    return vGps;
+    return null;
   }
 }

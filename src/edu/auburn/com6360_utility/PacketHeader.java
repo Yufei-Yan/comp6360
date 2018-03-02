@@ -8,6 +8,13 @@ import java.util.Arrays;
  * @author Yufei Yan (yzy0050@auburn.edu)
  */
 public class PacketHeader implements Serializable {
+  public static final int NORMAL = 0;
+  public static final int FORM = 1;
+  public static final int LEAVE = 2;
+  public static final int ACCEPT = 3;
+  public static final int ACK = 4;
+  public static final int DECLINE = 5;
+  
   private int sn;
   private byte[] ip;
   private int type;

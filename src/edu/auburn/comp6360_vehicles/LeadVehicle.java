@@ -3,6 +3,7 @@ package edu.auburn.comp6360_vehicles;
 import edu.auburn.com6360_utility.ConfigFileHandler;
 import edu.auburn.com6360_utility.NetworkHandler;
 import edu.auburn.com6360_utility.PacketHeader;
+import edu.auburn.com6360_utility.RoadTrainHandler;
 import edu.auburn.com6360_utility.VehicleParaHandler;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -27,8 +28,9 @@ public class LeadVehicle extends Vehicle {
                  double initVel,
                  double initAcc,
                  VSize initSize,
-                 int initNode) {
-    super(addr, initGps, initVel, initAcc, initSize, initNode);
+                 int initNode,
+                 String initServerAddr) {
+    super(addr, initGps, initVel, initAcc, initSize, initNode, initServerAddr);
   }
   
   @Override
@@ -120,6 +122,8 @@ public class LeadVehicle extends Vehicle {
   @Override
   protected void socketServer() throws Exception {
     DatagramSocket server = new DatagramSocket(10121);
+    PacketHeader clientHeader = null;
+    FollowingVehicle fv = null;
     int serverSn = new Random().nextInt(100);
     int clientSn = 0;
 
@@ -137,13 +141,14 @@ public class LeadVehicle extends Vehicle {
       try {
         server.receive(receivePacket);
         byte[] data = receivePacket.getData();
-        PacketHeader clientHeader = new NetworkHandler().headerDessembler(data);
+        clientHeader = new NetworkHandler().headerDessembler(data);
         clientSn = clientHeader.getSn();
+        System.out.println("lv client packet type: " + clientHeader.getType());
 //        System.out.println("sn: " + clientHeader.getSn());
 //        System.out.println("ip: " + clientHeader.getIp());
 //        System.out.println("type: " + clientHeader.getType());
         
-        FollowingVehicle fv = (FollowingVehicle)new NetworkHandler().payloadDessembler(data);
+        fv = (FollowingVehicle)new NetworkHandler().payloadDessembler(data);
 //        System.out.println("out of payloadDessembler");
 //        System.out.println("fv.nodeNum: " + fv.getNodeNum());
 //        System.out.println("fv.addr " + fv.getAddr());
@@ -164,13 +169,44 @@ public class LeadVehicle extends Vehicle {
       IPAddress = receivePacket.getAddress();
       port = receivePacket.getPort();
       
-      PacketHeader serverHeader = new PacketHeader(serverSn, this.getAddr(), NetworkHandler.NORMAL);
+      PacketHeader serverHeader = new PacketHeader(serverSn, this.getAddr(), PacketHeader.NORMAL);
+      
+      //deal with packet header type
+      if (clientHeader.equals(null) || PacketHeader.NORMAL == clientHeader.getType()) {
+        serverHeader = new PacketHeader(serverSn, this.getAddr(), PacketHeader.NORMAL);
+      } else if (PacketHeader.FORM == clientHeader.getType()) {
+        System.out.println("Following vehicle requested to JOIN Road Train.");
+        serverHeader = new PacketHeader(serverSn, this.getAddr(), PacketHeader.ACCEPT);
+        NetworkHandler.packetState = PacketHeader.NORMAL;
+        RoadTrainHandler.roadTrainState = RoadTrainHandler.LEAVE;
+      } else if (PacketHeader.LEAVE == clientHeader.getType()) {
+        System.out.println("Following vehicle requested to LEAVE Road Train.");
+        serverHeader = new PacketHeader(serverSn, this.getAddr(), PacketHeader.ACCEPT);
+        NetworkHandler.packetState = PacketHeader.NORMAL;
+        RoadTrainHandler.roadTrainState = RoadTrainHandler.FORM;
+      } else if (PacketHeader.ACK == clientHeader.getType()) {
+        System.out.println("Acknowledgement received.");
+        
+        if (RoadTrainHandler.roadTrainState == RoadTrainHandler.FORM) {
+          System.out.println("Disable link.");
+          this.setLink(0);
+        } else 
+        {
+          System.out.println("Set up link.");
+          this.setLink(fv.getNodeNum());
+        }
+        serverHeader = new PacketHeader(serverSn, this.getAddr(), PacketHeader.NORMAL);
+      }
+      
+      System.out.println("lv server packet type: " + serverHeader.getType());
+      
       dataTx = new NetworkHandler().packetAssembler(serverHeader, this);
       sendPacket = new DatagramPacket(dataTx, dataTx.length, 
             IPAddress, port);
       
       server.send(sendPacket);
       ++serverSn;
+      
       this.update(timeInterval);
       System.out.println("client SN:" + clientSn);
       System.out.println("server SN:" + serverSn);

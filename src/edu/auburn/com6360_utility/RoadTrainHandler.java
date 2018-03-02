@@ -9,8 +9,11 @@ import java.util.logging.Logger;
 
 public class RoadTrainHandler implements Runnable {
   
-  private static final int FORM = 0;
-  private static final int LEAVE = 1;
+  public static int roadTrainState = 0;
+  
+  public static final int NORMAL = 0;
+  public static final int FORM = 1;
+  public static final int LEAVE = 2;
   
   private FollowingVehicle roadTrainFV = null;
   private String filename;
@@ -23,12 +26,17 @@ public class RoadTrainHandler implements Runnable {
 
   @Override
   public void run() {
-    int state = FORM;
+    roadTrainState = NORMAL;
     
     ConfigFileHandler configFile = new ConfigFileHandler(filename);
     VehicleParaHandler paraHandler = new VehicleParaHandler();
+    
     Gps leadGps = this.getRtGps(configFile, 1);
     Gps followGps = this.getRtGps(configFile, roadTrainFV.getNodeNum());
+    while (null == leadGps || null == followGps) {
+      leadGps = this.getRtGps(configFile, 1);
+      followGps = this.getRtGps(configFile, roadTrainFV.getNodeNum());
+    }
     //Gps followGps = this.getRtGps(configFile, 2);
     System.out.println("fgps:" + followGps.getLon());
     System.out.println("lgps:" + leadGps.getLon());
@@ -42,6 +50,9 @@ public class RoadTrainHandler implements Runnable {
           Thread.sleep(roadTrainFV.timeInterval);
           leadGps = this.getRtGps(configFile, 1);
           followGps = this.getRtGps(configFile, roadTrainFV.getNodeNum());
+          if (leadGps == null || followGps == null) {
+            continue;
+          }
           distance = paraHandler.distanceCal(followGps, leadGps);
           System.out.println("fgps:" + followGps.getLon());
           System.out.println("lgps:" + leadGps.getLon());
@@ -55,6 +66,7 @@ public class RoadTrainHandler implements Runnable {
     System.out.println("Following and lead vehicles are now within predefined distance.");
     System.out.println("Following vehicle brakes.");
     roadTrainFV.setVel(30);
+    roadTrainState = FORM;
     try {
       Thread.sleep(250);
     } catch (InterruptedException ex) {
@@ -66,18 +78,22 @@ public class RoadTrainHandler implements Runnable {
       Scanner sc = new Scanner(System.in);
       String key = sc.next();
 
-      
-      if (FORM == state) {
+      if (FORM == roadTrainState) {
         if (key.equals("form")) {
           System.out.println("Form road train.");
-          state = LEAVE;
+          NetworkHandler.packetState = PacketHeader.FORM;
+          roadTrainState = LEAVE;
         }
+        System.out.println("rt packet state:" + NetworkHandler.packetState);
       } else {
         if (key.equals("leave")) {
           System.out.println("Leave road train.");
-          state = FORM;
+          NetworkHandler.packetState = PacketHeader.LEAVE;
+          roadTrainState = FORM;
         }
+        System.out.println("packet state:" + NetworkHandler.packetState);
       }
+      
     }
   }
 
@@ -113,7 +129,11 @@ public class RoadTrainHandler implements Runnable {
     }
     
     Gps gps = configFile.getGps(nodeNum);
-    System.out.println("rt gps:" + gps.getLat() + " " + gps.getLon());
+    if (null != gps) {
+      System.out.println("rt gps:" + gps.getLat() + " " + gps.getLon());
+    } else {
+      System.out.println("No GPS data.");
+    }
     return gps;
   }
   
