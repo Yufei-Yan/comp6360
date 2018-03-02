@@ -174,6 +174,7 @@ public class ConfigFileHandler {
         lineNum = count;
       }
     }
+    
     return lineNum;
   }
   
@@ -218,10 +219,14 @@ public class ConfigFileHandler {
                  + veh.getGps().getLat() + " "
                  + veh.getGps().getLon() + " "; 
     
-    if (lineNum != 0) {
-      lines.set(lineNum - 1, all);
-    } else {
-      return false;
+    try {
+      if (lineNum != 0) {
+        lines.set(lineNum - 1, all);
+      } else {
+        return false;
+      }
+    } catch (Exception e) {
+      System.out.println("Exception caught, config file not updated.");
     }
     
     try {
@@ -232,5 +237,31 @@ public class ConfigFileHandler {
     }
     
     return ret;
+  }
+  
+  public Gps getGps(int nodeNum) {
+    Gps vGps = new Gps();
+    
+    Path path = Paths.get(filename);
+    List<String> lines = null;
+    
+    try {
+      lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+    } catch (IOException ex) {
+      System.err.println("Exception caught.\n Program exits");
+      ex.printStackTrace();
+      System.exit(0);
+    }
+    
+    int lineNum = this.isNodeExist(nodeNum);
+    
+    String line = lines.get(lineNum - 1);
+    String[] tokens;
+    tokens = line.split(" ");
+    
+    vGps.setLat(Double.parseDouble(tokens[3]));
+    vGps.setLon(Double.parseDouble(tokens[4]));
+    
+    return vGps;
   }
 }

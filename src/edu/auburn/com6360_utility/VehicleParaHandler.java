@@ -66,7 +66,7 @@ public class VehicleParaHandler {
       newGps.setLon(0);
     } else {
       newGps.setLat(5);
-      newGps.setLon(-20);
+      newGps.setLon(0);
     }
     
     System.out.println(newGps.getLat());
@@ -87,6 +87,17 @@ public class VehicleParaHandler {
 	  double distance = velocity * timeInterval + .5 * acceleration * timeInterval * timeInterval;
 	  newLoc.setLon(oldLoc.getLon() + distance);
 	  return newLoc;
+  }
+  
+  /**
+   * Calculate the horizontal distance based on GPS coordinates.
+   * 
+   * @param fGps GPS GPS on following vehicle
+   * @param lGps GPS on lead vehicle
+   * @return the horizontal distance
+   */
+  public double distanceCal(Gps fGps, Gps lGps) {
+    return lGps.getLon() - fGps.getLon();
   }
   
   /**
@@ -124,13 +135,34 @@ public class VehicleParaHandler {
   public double packetLossCal(Gps lead, Gps follow) {
     double rate = 0;
     
-    double jitter = 0.95 + Math.random() * 1;
+    double jitter = (95 + Math.random() * 10) / 100;
     double distance = lead.getLon()- follow.getLon();
+    double possibility = 90.158730 - (0.00873 * distance * distance) + (0.571428 * distance);
+    System.out.println("poss:" + possibility);
     
-    rate = jitter * 
-            (99.10714 -(0.00982 * distance * distance) - 0.00893 * distance);
+    rate = jitter * possibility / 100;
 
     return rate;
+  }
+  
+  /**
+   * Determine if the packet is lost
+   * 
+   * @param lead GPS on lead vehicle
+   * @param follow GPS on following vehicle
+   * @return true if the packet should be lost;
+   *         false if the packet should not be lost.
+   */
+  public boolean isPacketLoss(Gps lead, Gps follow) {
+    double rate = this.packetLossCal(lead, follow);
+    double toss = rate * ((50 + Math.random() * 50)/100);
+    System.out.println("toss: " + toss);
+    
+    if (toss < 0.5) {
+      return true;
+    }
+    
+    return false;
   }
   
   /**

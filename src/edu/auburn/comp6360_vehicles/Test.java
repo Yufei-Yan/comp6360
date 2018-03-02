@@ -35,7 +35,8 @@ public class Test {
       FollowingVehicle follow = (FollowingVehicle)new VehicleParaHandler().vehicleGenrator(args[0], args[2]);
       follow.start();
       
-      RoadTrainHandler rt = new RoadTrainHandler();
+      RoadTrainHandler rt = new RoadTrainHandler(follow, args[2]);
+      rt.setRtDistance(Double.parseDouble(args[1]));
       rt.start();
     }
   }

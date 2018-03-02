@@ -10,6 +10,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.util.Random;
+import jdk.nashorn.internal.codegen.CompilerConstants;
 
 /**
  *
@@ -63,14 +64,23 @@ public class LeadVehicle extends Vehicle {
       }
     } else {
       System.out.println(filename + " found!");
-      //configHandler.removeConfigFile();
-      try {
-        ret = configHandler.writeAll(this);
-      } catch (IOException e) {
-        System.err.println("Failed to write to config file.");
-        e.printStackTrace();
-      }
+      ret = configHandler.removeConfigFile();
       
+      if (ret) {
+        System.out.println("Old config file removed.");
+        ret = configHandler.createConfigFile();
+        try {
+          ret = configHandler.writeAll(this);
+        } catch (IOException e) {
+          System.err.println("Failed to write to config file.");
+          e.printStackTrace();
+        }
+      } else {
+        System.out.println("Old config file cannot be removed.");
+        System.out.println("Please mannually remove the file and restart the program");
+        System.exit(0);
+      }
+
 //      if (!ret) {
 //        System.out.println("Failed to write to config file");
 //      } else {

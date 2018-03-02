@@ -2,7 +2,6 @@ package edu.auburn.comp6360_vehicles;
 
 import edu.auburn.com6360_utility.ConfigFileHandler;
 import edu.auburn.com6360_utility.NetworkHandler;
-import static edu.auburn.com6360_utility.NetworkHandler.NORMAL;
 import edu.auburn.com6360_utility.PacketHeader;
 import edu.auburn.com6360_utility.VehicleParaHandler;
 import java.io.IOException;
@@ -57,7 +56,7 @@ public class FollowingVehicle extends Vehicle {
    * 
    */
   public void catchup() {
-	  this.setVel(33.3);
+	  this.setVel(35);
 	  this.setAcc(0);
   }
   
@@ -91,7 +90,7 @@ public class FollowingVehicle extends Vehicle {
   public void run() {
     
     ConfigFileHandler configHandler = new ConfigFileHandler(filename);
-    boolean ret = false;
+    boolean ret;
     
     ret = configHandler.isFileExist(filename);
     if (!ret) {
@@ -101,7 +100,7 @@ public class FollowingVehicle extends Vehicle {
     } else {
       System.out.println(filename + " found!");
       try {
-        ret = configHandler.writeAll(this);
+        configHandler.writeAll(this);
       } catch (IOException e) {
         System.err.println("Failed to write to config file.");
         e.printStackTrace();
@@ -156,6 +155,7 @@ public class FollowingVehicle extends Vehicle {
       try {
       DatagramPacket receivePacket = new DatagramPacket(dataRx, dataRx.length);
       client.receive(receivePacket);
+      //System.out.println("receivePacket size:" + receivePacket.getData().length);
       
       dataRx = receivePacket.getData();
       
@@ -164,12 +164,8 @@ public class FollowingVehicle extends Vehicle {
       
       serverSn = serverHeader.getSn();
       
-      double toss = vehPara.packetLossCal(lv.getGps(), this.getGps()) * Math.random();
-      if (toss < 0.5) {
-        System.out.println("No packet Received.");
-        isLoss = true;
-      }
-      
+      isLoss = vehPara.isPacketLoss(lv.getGps(), this.getGps());
+
       } catch (SocketTimeoutException e) {
         client.close();
         continue;
@@ -188,6 +184,8 @@ public class FollowingVehicle extends Vehicle {
       
       if (!isLoss) {
         System.out.println("server SN:" + serverSn);
+      } else {
+        System.out.println("No server packet Received.");
       }
       
       System.out.println();

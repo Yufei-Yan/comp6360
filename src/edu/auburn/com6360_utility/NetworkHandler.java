@@ -5,12 +5,13 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.instrument.Instrumentation;
 
 /**
  *
  * @author Yufei Yan (yzy0050@auburn.edu)
  */
-public class NetworkHandler {;
+public class NetworkHandler {
   
   public static final int NORMAL = 0;
   public static final int FORM = 1;
@@ -18,6 +19,8 @@ public class NetworkHandler {;
   public static final int ACCEPT = 3;
   public static final int ACK = 4;
   public static final int DECLINE = 5;
+  
+  public static int packetState = NORMAL;
   
   private int headerLength = 117;
   
@@ -148,7 +151,25 @@ public class NetworkHandler {;
     str.append((int) ( rawIp[3] & 0xFF));
 
     //  Return the address string
-    
+
     return str.toString();    
   }
+}
+
+/**
+ * This is class for calculating the size of an object.
+ * Refer to: https://www.quora.com/How-do-we-calculate-the-size-of-the-object-in-Java
+ * 
+ * @author Unknown
+ */
+class ObjectSizeFetcher {
+    private static Instrumentation instrumentation;
+ 
+    public static void premain(String args, Instrumentation inst) {
+        instrumentation = inst;
+    }
+ 
+    public static long getObjectSize(Object o) {
+        return instrumentation.getObjectSize(o);
+    }
 }
