@@ -38,14 +38,14 @@ public class RoadTrainHandler implements Runnable {
       followGps = this.getRtGps(configFile, roadTrainFV.getNodeNum());
     }
     //Gps followGps = this.getRtGps(configFile, 2);
-    System.out.println("fgps:" + followGps.getLon());
-    System.out.println("lgps:" + leadGps.getLon());
+    //System.out.println("fgps:" + followGps.getLon());
+    //System.out.println("lgps:" + leadGps.getLon());
     double distance = paraHandler.distanceCal(followGps, leadGps);
     System.out.println("Distance00: " + distance);
     
     if (distance > rtDistance) {
       roadTrainFV.catchup();
-      while (distance > (rtDistance - 35.0/roadTrainFV.timeInterval)) {
+      while (distance > rtDistance) {
         try {
           Thread.sleep(roadTrainFV.timeInterval);
           leadGps = this.getRtGps(configFile, 1);
@@ -54,8 +54,8 @@ public class RoadTrainHandler implements Runnable {
             continue;
           }
           distance = paraHandler.distanceCal(followGps, leadGps);
-          System.out.println("fgps:" + followGps.getLon());
-          System.out.println("lgps:" + leadGps.getLon());
+          //System.out.println("fgps:" + followGps.getLon());
+          //System.out.println("lgps:" + leadGps.getLon());
           System.out.println("Distance: " + distance);
         } catch (InterruptedException ex) {
           Logger.getLogger(RoadTrainHandler.class.getName()).log(Level.SEVERE, null, ex);
@@ -84,14 +84,14 @@ public class RoadTrainHandler implements Runnable {
           NetworkHandler.packetState = PacketHeader.FORM;
           roadTrainState = LEAVE;
         }
-        System.out.println("rt packet state:" + NetworkHandler.packetState);
+        //System.out.println("rt packet state:" + NetworkHandler.packetState);
       } else {
         if (key.equals("leave")) {
           System.out.println("Leave road train.");
           NetworkHandler.packetState = PacketHeader.LEAVE;
           roadTrainState = FORM;
         }
-        System.out.println("packet state:" + NetworkHandler.packetState);
+        //System.out.println("packet state:" + NetworkHandler.packetState);
       }
       
     }
@@ -130,7 +130,7 @@ public class RoadTrainHandler implements Runnable {
     
     Gps gps = configFile.getGps(nodeNum);
     if (null != gps) {
-      System.out.println("rt gps:" + gps.getLat() + " " + gps.getLon());
+      //System.out.println("rt gps:" + gps.getLat() + " " + gps.getLon());
     } else {
       System.out.println("No GPS data.");
     }

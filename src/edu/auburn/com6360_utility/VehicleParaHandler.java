@@ -5,8 +5,17 @@ import edu.auburn.comp6360_vehicles.Gps;
 import edu.auburn.comp6360_vehicles.LeadVehicle;
 import edu.auburn.comp6360_vehicles.Vehicle;
 import edu.auburn.comp6360_vehicles.VSize;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Enumeration;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Handle all parameters needed by vehicles
@@ -110,14 +119,14 @@ public class VehicleParaHandler {
 	return velocity;
   }
   
-  
   /**
    * Calculate throughput
    * 
    * @param 
    * @return 
    */
-  public void throughputCal() {
+  public double throughputCal(int bytes, double time) {
+    return bytes / time;
   
   }
   
@@ -162,6 +171,17 @@ public class VehicleParaHandler {
   }
   
   /**
+   * Calculate packet deliver ratio
+   * 
+   * @param totalPacket all packets sent by server/client
+   * @param receivePacket all received packets sent by server/client
+   * @return packet deliver ratio
+   */
+  public double deliverRatio(int totalPacket, int receivePacket) {
+    return ((double)receivePacket) / totalPacket;
+  }
+  
+  /**
    * Calculate end-to-end latency
    * 
    * @param lead GPS on lead vehicle
@@ -181,14 +201,53 @@ public class VehicleParaHandler {
   
   private byte[] getAddr() {
     InetAddress ipAddr = null;
+    
+    String interfaceName = "enp1s0";
+    String ip = "localhost";
+    NetworkInterface networkInterface;
     try {
-      ipAddr = InetAddress.getLocalHost();
+      networkInterface = NetworkInterface.getByName(interfaceName);
+      Enumeration<InetAddress> inetAddress = networkInterface.getInetAddresses();
+      InetAddress currentAddress;
+      currentAddress = inetAddress.nextElement();
+      while (inetAddress.hasMoreElements()) {
+        currentAddress = inetAddress.nextElement();
+        if (currentAddress instanceof Inet4Address && !currentAddress.isLoopbackAddress()) {
+          ip = currentAddress.toString();
+          ip = ip.substring(1);
+          System.out.println(ip);
+          break;
+        }
+      }
+    } catch (SocketException ex) {
+      Logger.getLogger(VehicleParaHandler.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    
+    try {
+      ipAddr = InetAddress.getByName(ip);
     } catch (UnknownHostException ex) {
       System.out.println("Cannot get localhost IP address.");
       ex.printStackTrace();
       //return "127.0.0.1";
     }
     return ipAddr.getAddress();
+  }
+  
+  public int objectSizeCal(Object obj) {
+    byte[] temp;
+    ByteArrayOutputStream bos = null;
+    ObjectOutputStream oos = null;
+    
+    bos = new ByteArrayOutputStream();
+    try {
+      oos = new ObjectOutputStream(bos);
+      oos.writeObject(obj);
+      oos.flush();
+    } catch (IOException ex) {
+      Logger.getLogger(NetworkHandler.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    temp = bos.toByteArray();
+    return temp.length;
   }
 
 }

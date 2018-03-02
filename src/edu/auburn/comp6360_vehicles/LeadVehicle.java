@@ -143,7 +143,7 @@ public class LeadVehicle extends Vehicle {
         byte[] data = receivePacket.getData();
         clientHeader = new NetworkHandler().headerDessembler(data);
         clientSn = clientHeader.getSn();
-        System.out.println("lv client packet type: " + clientHeader.getType());
+        //System.out.println("lv client packet type: " + clientHeader.getType());
 //        System.out.println("sn: " + clientHeader.getSn());
 //        System.out.println("ip: " + clientHeader.getIp());
 //        System.out.println("type: " + clientHeader.getType());
@@ -157,7 +157,7 @@ public class LeadVehicle extends Vehicle {
       } catch (SocketTimeoutException e) {
         System.out.println("Update timeout.");
         this.update(timeout);
-        System.out.println("No following vehicles detected.\nBeacon broadcasting");
+        System.out.println("No following vehicles detected.\nBeacon broadcasting\n");
         ++serverSn;
         continue;
       } catch (Exception e) {
@@ -198,7 +198,7 @@ public class LeadVehicle extends Vehicle {
         serverHeader = new PacketHeader(serverSn, this.getAddr(), PacketHeader.NORMAL);
       }
       
-      System.out.println("lv server packet type: " + serverHeader.getType());
+      //System.out.println("lv server packet type: " + serverHeader.getType());
       
       dataTx = new NetworkHandler().packetAssembler(serverHeader, this);
       sendPacket = new DatagramPacket(dataTx, dataTx.length, 

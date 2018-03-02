@@ -176,7 +176,7 @@ public class Vehicle implements Runnable, Serializable {
     
     ConfigFileHandler update = new ConfigFileHandler(filename);
     int lineNum = update.isNodeExist(this.getNodeNum());
-    System.out.println("lineNum: " + lineNum);
+    //System.out.println("lineNum: " + lineNum);
     
     if (0 != lineNum) {
       //System.out.println("test3");

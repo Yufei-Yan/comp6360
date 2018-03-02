@@ -126,7 +126,11 @@ public class FollowingVehicle extends Vehicle {
     System.out.println("in socket client");
     int clientSn = new Random().nextInt(100);
     VehicleParaHandler vehPara = new VehicleParaHandler();
+    long start = System.nanoTime();
+    long end = 0;
     int serverSn = 0;
+    int totalPacket = 0;
+    int receivedPacket = 0;
     boolean isLoss = false;
 
     while (true) {
@@ -139,7 +143,7 @@ public class FollowingVehicle extends Vehicle {
       
       try {
         PacketHeader clientHeader = new PacketHeader(clientSn, this.getAddr(), PacketHeader.NORMAL);
-        System.out.println("fv packet state:" + NetworkHandler.packetState);
+        //System.out.println("fv packet state:" + NetworkHandler.packetState);
         if (PacketHeader.FORM == NetworkHandler.packetState) {
           clientHeader = new PacketHeader(clientSn, this.getAddr(), PacketHeader.FORM);
           NetworkHandler.packetState = PacketHeader.NORMAL;
@@ -148,7 +152,7 @@ public class FollowingVehicle extends Vehicle {
           NetworkHandler.packetState = PacketHeader.NORMAL;
         }
         
-        System.out.println("fv client packet type: " + clientHeader.getType());
+        //System.out.println("fv client packet type: " + clientHeader.getType());
         dataTx = new NetworkHandler().packetAssembler(clientHeader, this);
 
         DatagramPacket sendPacket = new DatagramPacket(dataTx, dataTx.length, IPAddress, 10121);
@@ -164,6 +168,7 @@ public class FollowingVehicle extends Vehicle {
       //System.out.println(sendPacket.getData());
 
       LeadVehicle lv = null;
+      PacketHeader serverHeader = null;
       try {
         DatagramPacket receivePacket = new DatagramPacket(dataRx, dataRx.length);
         client.receive(receivePacket);
@@ -171,11 +176,11 @@ public class FollowingVehicle extends Vehicle {
 
         dataRx = receivePacket.getData();
 
-        PacketHeader serverHeader = new NetworkHandler().headerDessembler(dataRx);
+        serverHeader = new NetworkHandler().headerDessembler(dataRx);
         lv = (LeadVehicle) new NetworkHandler().payloadDessembler(dataRx);
 
         serverSn = serverHeader.getSn();
-        System.out.println("fv server packet type: " + serverHeader.getType());
+        //System.out.println("fv server packet type: " + serverHeader.getType());
         if (PacketHeader.ACCEPT == serverHeader.getType()) {
           if (RoadTrainHandler.roadTrainState == RoadTrainHandler.FORM) {
             System.out.println("Disable link.");
@@ -202,12 +207,11 @@ public class FollowingVehicle extends Vehicle {
       } catch (Exception e) {
         System.err.println(e);
       }
-
       //System.out.println("Client: " + new String(receivePacket.getData()));
       client.close();
       ++clientSn;
       int latency = vehPara.latencyCal(lv.getGps(), this.getGps());
-      System.out.println("client latency: " + latency);
+      System.out.println("Client latency: " + latency);
       Thread.sleep(0, latency);
       
       this.update(timeInterval);
@@ -215,9 +219,21 @@ public class FollowingVehicle extends Vehicle {
       
       if (!isLoss) {
         System.out.println("server SN:" + serverSn);
+        ++receivedPacket;
       } else {
         System.out.println("No server packet Received.");
       }
+      ++totalPacket;
+      System.out.println("Packet deliver ratio: " + 
+                         vehPara.deliverRatio(totalPacket, receivedPacket) * 100 + 
+                         "%");
+      
+      end = System.nanoTime();
+      double timeDifference = (end - start) / 1000000000.0;
+      int packetSize = vehPara.objectSizeCal(serverHeader) + vehPara.objectSizeCal(lv);
+      System.out.println("Throughput: " + 
+                         vehPara.throughputCal(packetSize, timeDifference) * 8 + 
+                         " bps");
       
       System.out.println();
       Thread.sleep(timeInterval);

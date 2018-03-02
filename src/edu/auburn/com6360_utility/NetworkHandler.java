@@ -3,9 +3,13 @@ package edu.auburn.com6360_utility;
 import edu.auburn.comp6360_vehicles.Vehicle;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.instrument.Instrumentation;
+import java.net.InetAddress;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -15,7 +19,26 @@ public class NetworkHandler {
   
   public static int packetState = PacketHeader.NORMAL;
   
-  private int headerLength = 117;
+  private int headerSize = 117;
+          //(int)ObjectSizeFetcher.getObjectSize(new PacketHeader(0, new byte[4], 0));
+  
+  public NetworkHandler() {
+    byte[] temp;
+    ByteArrayOutputStream bos = null;
+    ObjectOutputStream oos = null;
+    
+    bos = new ByteArrayOutputStream();
+    try {
+      oos = new ObjectOutputStream(bos);
+      oos.writeObject((Object)new PacketHeader(0, new byte[4], 0));
+      oos.flush();
+    } catch (IOException ex) {
+      Logger.getLogger(NetworkHandler.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    
+    temp = bos.toByteArray();
+    this.headerSize = temp.length;
+  }
   
 //  public int assignNodeNum() {
 //    int i = 0;
@@ -43,8 +66,9 @@ public class NetworkHandler {
 //  }
   
   public byte[] packetAssembler(PacketHeader header, Vehicle veh) throws Exception {
-    byte[] data = new byte[1024];
-    byte[] temp;
+    byte[] data;
+    byte[] tempHeader;
+    byte[] tempVeh;
     
     ByteArrayOutputStream bos = null;
     ObjectOutputStream oos = null;
@@ -54,18 +78,22 @@ public class NetworkHandler {
       oos = new ObjectOutputStream(bos);
       oos.writeObject((Object)header);
       oos.flush();
-      temp = bos.toByteArray();
-      headerLength = temp.length;
+      tempHeader = bos.toByteArray();
+      headerSize = tempHeader.length;
+      //headerLength = temp.length;
       //System.out.println("header length:" + headerLength);
-      System.arraycopy(temp, 0, data, 0, headerLength);
+      
       
       bos = new ByteArrayOutputStream();
       oos = new ObjectOutputStream(bos);
       oos.writeObject((Object)veh);
       oos.flush();
-      temp = bos.toByteArray();
+      tempVeh = bos.toByteArray();
+      
+      data = new byte[tempHeader.length + tempVeh.length];
       //System.out.println(temp.length);
-      System.arraycopy(temp, 0, data, headerLength, temp.length);
+      System.arraycopy(tempHeader, 0, data, 0, headerSize);
+      System.arraycopy(tempVeh, 0, data, headerSize, tempVeh.length);
       
     } finally {
       if (oos != null) {
@@ -81,8 +109,8 @@ public class NetworkHandler {
   
   
   public PacketHeader headerDessembler(byte[] data) throws Exception {
-    byte[] temp = new byte[1024];
-    System.arraycopy(data, 0, temp, 0, headerLength);
+    byte[] temp = new byte[data.length];
+    System.arraycopy(data, 0, temp, 0, headerSize);
     
     PacketHeader header = null;
     ByteArrayInputStream bis = null;
@@ -105,8 +133,8 @@ public class NetworkHandler {
   }
   
   public Vehicle payloadDessembler(byte[] data) throws Exception {
-    byte[] temp = new byte[1024];
-    System.arraycopy(data, headerLength, temp, 0, data.length - headerLength);
+    byte[] temp = new byte[data.length];
+    System.arraycopy(data, headerSize, temp, 0, data.length - headerSize);
     
     Vehicle obj = null;
     ByteArrayInputStream bis = null;

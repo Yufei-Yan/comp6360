@@ -195,7 +195,7 @@ public class ConfigFileHandler {
   }
   
   public boolean updateLine(int lineNum, Vehicle veh) {
-    System.out.println("in updateLine");
+    //System.out.println("in updateLine");
     boolean ret = false;
     
     Path path = Paths.get(filename);
@@ -235,7 +235,7 @@ public class ConfigFileHandler {
   }
   
   public Gps getGps(int nodeNum) {
-    System.out.println("getGps: " + nodeNum);
+    //System.out.println("getGps: " + nodeNum);
     if (0 == nodeNum) {
       return null;
     }
