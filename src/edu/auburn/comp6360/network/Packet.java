@@ -1,5 +1,10 @@
 package edu.auburn.comp6360.network;
 
+//import java.io.ByteArrayInputStream;
+//import java.io.ByteArrayOutputStream;
+//import java.io.IOException;
+//import java.io.ObjectInputStream;
+//import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 public class Packet implements Serializable {
@@ -31,6 +36,13 @@ public class Packet implements Serializable {
 		this.vInfo = vInfo;
 	}
 
+	public void setPrevHop(int nid) {
+		this.header.setPrevHop(nid);
+	}
+	
+	public int getPrevHop() {
+		return this.header.getPrevHop();
+	}
 	
 	public Header getHeader() {
 		return this.header;
@@ -44,11 +56,40 @@ public class Packet implements Serializable {
 		return 4096;
 	}
 	
+	public int increasePathLength() {
+		return this.header.increasePathLength();
+	}
+	
+//	public Packet forwardCopy(int newPrevHop) {
+//		// Serialization of object
+//		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//		ObjectOutputStream oos = null;
+//		ObjectInputStream ois = null;
+//		Packet copied = null;
+//		try {
+//			oos = new ObjectOutputStream(bos);
+//			oos.writeObject(this);
+//			//Deserialization of object
+//			byte[] packetBytes = bos.toByteArray();
+//			ByteArrayInputStream bis = new ByteArrayInputStream(packetBytes);
+//			ois = new ObjectInputStream(bis);
+//			copied = (Packet) ois.readObject();
+//			copied.setPrevHop(newPrevHop);
+//		} catch (IOException | ClassNotFoundException e) {
+//			e.printStackTrace();
+//		}
+//		return copied;
+//	}
+	
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 //		sb.append("source: " + this.getHeader().getSource() + ", ");
 		Header header = this.getHeader();
-		sb.append(header.getPacketType() + " " + header.getSeqNum() + ", from " + header.getSource() + ".\t");
+		sb.append(header.getPacketType() + " " + header.getSeqNum());
+		sb.append(", source: " + header.getSource());
+		sb.append(", prev hop: " + header.getPrevHop() + ".\t");
+		if (!(header.getPacketType().equals("normal")))
+			sb.append("Piggybacked info: " + header.getPiggyback() + ".\t");
 		if (this.getVehicleInfo() != null)
 			sb.append(this.getVehicleInfo().toString());
 		return sb.toString(); 

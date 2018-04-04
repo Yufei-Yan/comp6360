@@ -1,8 +1,12 @@
 package edu.auburn.comp6360.utilities;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedMap;
+//import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+//import java.util.HashMap;
+//import java.util.Map;
+//import java.util.SortedMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import edu.auburn.comp6360.application.GPS;
 import edu.auburn.comp6360.application.Node;
@@ -10,10 +14,10 @@ import edu.auburn.comp6360.application.Node;
 
 public class VehicleHandler {
 
-	public static final String[] PACKET_TYPES = {"normal", "join", "leave", "ackJoin", "ackLeave"};
+	public static final String[] PACKET_TYPES = {"normal", "join", "leave", "ackJoin", "ackLeave", "notify", "ok", "update"};
 
-	public static Map<String, Integer> initializeSequenceNumbers() {
-		Map<String, Integer> snMap= new HashMap<String, Integer>();
+	public static ConcurrentHashMap<String, Integer> initializeSequenceNumbers() {
+		ConcurrentHashMap<String, Integer> snMap= new ConcurrentHashMap<String, Integer>();
 		for (String type : PACKET_TYPES) {
 			snMap.put(type, 0);
 		}
@@ -38,6 +42,10 @@ public class VehicleHandler {
 	    if (toss < 0.5)
 	    	return true;
 	    return false;
+	}
+	
+	public static boolean ifPacketLoss(GPS gps1, GPS gps2) {
+		return ifPacketLoss(computeDistance(gps1, gps2));
 	}
 
 	public static boolean ifPacketLoss(Node n1, Node n2) {
@@ -71,29 +79,23 @@ public class VehicleHandler {
 	}	
 	
 	
-	public static Node updateNeighborsFromPacket(Node selfNode, int otherNodeID, GPS otherGPS) {
-//		if (!(selfNode.getNodeID() == otherNodeID)) {
-		GPS selfGPS = selfNode.getGPS();
-		if (inTransmissionRange(selfGPS, otherGPS)) 
-			selfNode.addLink(otherNodeID);
-		else
-			selfNode.removeLink(otherNodeID);			
-//		}
-		return selfNode;
+	public static ConcurrentSkipListSet<Integer> updateNeighborsFromPacket(int selfNodeID, GPS selfGPS, ConcurrentSkipListSet<Integer> neighborSet, int otherNodeID, GPS otherGPS) {
+		if (selfNodeID != otherNodeID) {
+			if (inTransmissionRange(selfGPS, otherGPS)) 
+				neighborSet.add(otherNodeID);
+			else
+				neighborSet.remove(Integer.valueOf(otherNodeID));
+		}
+		return neighborSet;
 	}
-	
-//	public static void updateInfoFromPacket(Node selfNode, SortedMap<Integer, Node> nodesMap, PacketHeader header, VehicleInfo vInfo) {
-//		
-//	}
-	
 	
 	/*
 	 * Only add neighbor according to the config file, if the link has not been there already.
 	 */
-	public static Node updateNeighborsFromFile(Node selfNode, SortedMap<Integer, Node> nodesMap) {
-		for (SortedMap.Entry<Integer, Node> entry: nodesMap.entrySet()) {	
+	public static Node updateNeighborsFromFile(Node selfNode, ConcurrentSkipListMap<Integer, Node> nodesMap) {
+		for (ConcurrentSkipListMap.Entry<Integer, Node> entry: nodesMap.entrySet()) {
 			int i = entry.getKey();
-			if (i != selfNode.getNodeID()) { //&& (!selfNode.getLinks().contains(i))) {
+			if (i != selfNode.getNodeID()) {
 				if (inTransmissionRange(entry.getValue(), selfNode))
 					selfNode.addLink(i);
 				else
